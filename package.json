@@ -1,17 +1,18 @@
 {
     "name": "omsfeed",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Express app to retrieve precious metals daily quotes, store them in MongoDB and provide API on top",
     "main": "dist/server.js",
     "types": "dist/server.d.ts",
     "scripts": {
         "postinstall": "npm run build",
         "start": "node dist/server.js",
-        "build": "npm run lint && tsc",
+        "build": "tsc",
         "watch": "npm run build && tsc -w",
         "lint": "tslint -c tslint.json --project tsconfig.json",
-        "@tools/fetch": "npm run build && node dist/tools/fetch-to-json.js out.json",
-        "@tools/db-import": "npm run build && node dist/tools/load-json-to-db.js out.json",
+        "@tools/fetch": "node dist/tools/fetch-to-json.js out.json",
+        "@tools/db-import": "node dist/tools/load-json-to-db.js out.json",
+        "test": "npm run lint",
         "dev": "ts-node-dev src/server.ts"
     },
     "author": "Viachaslau Tyhskavets",
