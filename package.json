@@ -1,0 +1,63 @@
+{
+    "name": "omsfeed",
+    "version": "0.0.1",
+    "description": "Express app to retrieve precious metals daily quotes, store them in MongoDB and provide API on top",
+    "main": "dist/server.js",
+    "types": "dist/server.d.ts",
+    "scripts": {
+        "postinstall": "npm run build",
+        "start": "node dist/server.js",
+        "build": "npm run lint && tsc",
+        "watch": "npm run build && tsc -w",
+        "lint": "tslint -c tslint.json --project tsconfig.json",
+        "@tools/fetch": "npm run build && node dist/tools/fetch-to-json.js out.json",
+        "@tools/db-import": "npm run build && node dist/tools/load-json-to-db.js out.json",
+        "dev": "ts-node-dev src/server.ts"
+    },
+    "author": "Viachaslau Tyhskavets",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pmstss/omsfeed.git"
+    },
+    "license": "MIT",
+    "keywords": [
+        "express",
+        "mongo",
+        "typescript",
+        "qoutes"
+    ],
+    "bugs": {
+        "url": "https://github.com/pmstss/omsfeed/issues"
+    },
+    "homepage": "https://github.com/pmstss/omsfeed",
+    "files": [
+        "LICENSE",
+        "README.md",
+        "dist/"
+    ],
+    "dependencies": {
+        "@akanass/rx-http-request": "^3.1.0",
+        "commander": "^2.19.0",
+        "cors": "^2.8.5",
+        "express": "^4.16.2",
+        "moment": "^2.22.2",
+        "mongodb": "^3.1.10",
+        "morgan": "^1.9.1",
+        "morgan-mongo": "^1.1.0",
+        "rxjs": "^6.3.3",
+        "typescript": "^2.6.2"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.4",
+        "@types/express": "^4.11.0",
+        "@types/mongodb": "^3.1.14",
+        "@types/morgan": "^1.7.35",
+        "@types/node": "^9.6.39",
+        "ts-node-dev": "^1.0.0-pre.30",
+        "tslint": "^5.9.1",
+        "tslint-config-airbnb": "^5.11.1"
+    },
+    "engines": {
+        "node": "10.x"
+    }
+}
