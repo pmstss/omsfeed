@@ -13,11 +13,16 @@ export class ParametersValidator {
     }
 
     static validate(req: Request, res: Response, next: NextFunction): void {
-        ['date', 'startDate', 'endDate'].forEach((dateParam) => {
-            if (req.query[dateParam] && !ParametersValidator.validateDate(req.query[dateParam])) {
-                res.status(422).send('Unsupported date format');
-            }
-        });
+        if (req.params.asset && !['au', 'ag', 'pt', 'pd'].includes(req.params.asset)) {
+            res.status(422).send('Unsupported asset; use au, ag, pt, pd');
+        } else {
+            ['date', 'startDate', 'endDate'].forEach((dateParam) => {
+                if (req.query[dateParam] &&
+                        !ParametersValidator.validateDate(req.query[dateParam])) {
+                    res.status(422).send('Unsupported date format; use YYYY-MM-DD');
+                }
+            });
+        }
 
         if (!res.headersSent) {
             next();
