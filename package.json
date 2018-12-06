@@ -1,6 +1,6 @@
 {
     "name": "omsfeed",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "Express app to retrieve precious metals daily quotes, store them in MongoDB and provide API on top",
     "main": "dist/server.js",
     "types": "dist/server.d.ts",
@@ -30,11 +30,6 @@
         "url": "https://github.com/pmstss/omsfeed/issues"
     },
     "homepage": "https://github.com/pmstss/omsfeed",
-    "files": [
-        "LICENSE",
-        "README.md",
-        "dist/"
-    ],
     "dependencies": {
         "@akanass/rx-http-request": "^3.1.0",
         "commander": "^2.19.0",
