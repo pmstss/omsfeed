@@ -1,4 +1,5 @@
 import * as express from 'express';
+import * as compression from 'compression';
 import * as logger from 'morgan';
 import * as cors from 'cors';
 import { morganMongoMiddleware } from 'morgan-mongo';
@@ -28,6 +29,8 @@ app.use(morganMongoMiddleware(
         collection: process.env.MONGO_OMS_COLLECTION_LOGS || 'request-logs'
     }
 ));
+
+app.use(compression());
 
 app.use('/quotes', quotesRouter);
 app.use((req, res) => res.status(404).send('Not Found!'));

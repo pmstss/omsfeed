@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
+const compression = require("compression");
 const logger = require("morgan");
 const cors = require("cors");
 const morgan_mongo_1 = require("morgan-mongo");
@@ -22,6 +23,7 @@ exports.app.use(morgan_mongo_1.morganMongoMiddleware({
     },
     collection: process.env.MONGO_OMS_COLLECTION_LOGS || 'request-logs'
 }));
+exports.app.use(compression());
 exports.app.use('/quotes', quotes_router_1.default);
 exports.app.use((req, res) => res.status(404).send('Not Found!'));
 exports.app.use(((err, req, res) => {
