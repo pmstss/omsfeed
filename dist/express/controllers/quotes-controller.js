@@ -54,6 +54,7 @@ class QuotesController {
             }
             else {
                 res.header('Content-Type', 'application/json');
+                res.header('Cache-Control', `public, max-age=${3600 * 24 * 7}`);
                 res.send(quotes);
             }
         });
