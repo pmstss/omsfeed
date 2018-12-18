@@ -4,6 +4,7 @@ const express = require("express");
 const compression = require("compression");
 const logger = require("morgan");
 const cors = require("cors");
+const apicache = require("apicache");
 const morgan_mongo_1 = require("morgan-mongo");
 const callbacks_1 = require("./express/callbacks");
 const quotes_router_1 = require("./express/quotes-router");
@@ -24,7 +25,11 @@ exports.app.use(morgan_mongo_1.morganMongoMiddleware({
     collection: process.env.MONGO_OMS_COLLECTION_LOGS || 'request-logs'
 }));
 exports.app.use(compression());
-exports.app.use('/quotes', quotes_router_1.default);
+// route to display cache index
+exports.app.get('/quotes/cache', (req, res) => {
+    res.json(apicache.getIndex());
+});
+exports.app.use('/quotes', apicache.middleware('10 minutes'), quotes_router_1.default);
 exports.app.use((req, res) => res.status(404).send('Not Found!'));
 exports.app.use(((err, req, res) => {
     res.status(err.status || 500).send(`Error: ${err.name}, message: ${err.message}`);

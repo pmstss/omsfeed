@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as compression from 'compression';
 import * as logger from 'morgan';
 import * as cors from 'cors';
+import * as apicache from 'apicache';
 import { morganMongoMiddleware } from 'morgan-mongo';
 import { onError, onListening } from './express/callbacks';
 import quotesRouter from './express/quotes-router';
@@ -32,7 +33,13 @@ app.use(morganMongoMiddleware(
 
 app.use(compression());
 
-app.use('/quotes', quotesRouter);
+// route to display cache index
+app.get('/quotes/cache', (req, res) => {
+    res.json(apicache.getIndex());
+});
+
+app.use('/quotes', apicache.middleware('10 minutes'), quotesRouter);
+
 app.use((req, res) => res.status(404).send('Not Found!'));
 app.use(<express.ErrorRequestHandler>((err, req, res) => {
     res.status(err.status || 500).send(`Error: ${err.name}, message: ${err.message}`);
