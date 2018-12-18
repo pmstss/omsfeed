@@ -1,6 +1,6 @@
 {
     "name": "omsfeed",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Express app to retrieve precious metals daily quotes, store them in MongoDB and provide API on top",
     "main": "dist/server.js",
     "types": "dist/server.d.ts",
