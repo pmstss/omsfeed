@@ -53,6 +53,17 @@ class QuotesDbClient {
     insertMany(assetQuotes) {
         return this.collection.insertMany(assetQuotes);
     }
+    upsert(assetQuote) {
+        return this.collection.update({
+            date: assetQuote.date,
+            asset: assetQuote.asset
+        }, assetQuote, {
+            upsert: true
+        });
+    }
+    upsertMany(assetQuotes) {
+        return Promise.all(assetQuotes.map(q => this.upsert(q)));
+    }
     find(query) {
         return this.collection.find(query).project({ _id: 0 }); // projection to suppress _id
     }

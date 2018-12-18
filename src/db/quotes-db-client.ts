@@ -70,15 +70,17 @@ export class QuotesDbClient {
 
     public upsert(assetQuote: AssetQuote): Promise<WriteOpResult> {
         return this.collection.update(
-            { 
-                date: assetQuote.date, 
-                asset: assetQuote.asset 
-            }, assetQuote, {
+            {
+                date: assetQuote.date,
+                asset: assetQuote.asset
+            },
+            assetQuote,
+            {
                 upsert:true
             }
         );
     }
-    
+
     public upsertMany(assetQuotes: AssetQuote[]): Promise<WriteOpResult[]> {
         return Promise.all(assetQuotes.map(q => this.upsert(q)));
     }

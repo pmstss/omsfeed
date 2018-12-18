@@ -1,4 +1,4 @@
-import { Cursor, DeleteWriteOpResultObject, FilterQuery, InsertOneWriteOpResult, InsertWriteOpResult } from 'mongodb';
+import { Cursor, DeleteWriteOpResultObject, FilterQuery, InsertOneWriteOpResult, InsertWriteOpResult, WriteOpResult } from 'mongodb';
 import { AssetQuote } from '../types/asset-quote';
 export declare type DbOptions = {
     uri: string;
@@ -18,5 +18,7 @@ export declare class QuotesDbClient {
     remove(query: FilterQuery<AssetQuote>): Promise<DeleteWriteOpResultObject>;
     insert(assetQuote: AssetQuote): Promise<InsertOneWriteOpResult>;
     insertMany(assetQuotes: AssetQuote[]): Promise<InsertWriteOpResult>;
+    upsert(assetQuote: AssetQuote): Promise<WriteOpResult>;
+    upsertMany(assetQuotes: AssetQuote[]): Promise<WriteOpResult[]>;
     find(query: FilterQuery<AssetQuote>): Cursor<AssetQuote>;
 }

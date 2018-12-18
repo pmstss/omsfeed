@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const rxjs_1 = require("rxjs");
 const operators_1 = require("rxjs/operators");
 const quotes_db_client_1 = require("../../db/quotes-db-client");
 const params_parser_1 = require("./params-parser");
@@ -15,17 +16,18 @@ const quotes_fetcher_1 = require("../../fetcher/quotes-fetcher");
 class QuotesController {
     constructor() {
         this.dbClient = null;
+        this.quotesFetcher = new quotes_fetcher_1.QuotesFetcher();
     }
-    fetchMissingQuotes(quotesRequest) {
-        const quotesFetcher = new quotes_fetcher_1.QuotesFetcher();
-        const date = quotesRequest.getStartDate();
-        return quotesFetcher.fetchForDate(date).pipe(operators_1.toArray(), operators_1.tap((quotes) => {
-            if (quotes.length === 0) {
-                throw new Error(`No quotes available for date ${date}`);
-            }
-        }), operators_1.flatMap((quotes) => this.dbClient.insertMany(quotes))).toPromise();
+    fetchMissingQuotes(dates) {
+        return this.quotesFetcher.fetchForDates(dates).pipe(operators_1.toArray(), operators_1.flatMap((quotes) => rxjs_1.from(quotes.length > 0 ?
+            this.dbClient.upsertMany(quotes).then(() => quotes) : [])));
     }
-    handle(req, res) {
+    detectMissingDates(quotes, startDate, endDate) {
+        const quotesSet = new Set(quotes.map(q => q.date.getTime()));
+        return quotes_fetcher_1.QuotesFetcher.dateRangeToArray(startDate, endDate)
+            .filter(d => !quotesSet.has(d.getTime()));
+    }
+    handle(req, res, fetchMissing = true) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.dbClient) {
                 this.dbClient = yield quotes_db_client_1.QuotesDbClient.getInstance();
@@ -38,19 +40,16 @@ class QuotesController {
                 },
                 asset: quotesRequest.getAsset() || { $exists: true }
             }).toArray();
-            if (quotes.length === 0) {
-                if (quotesRequest.isSingleDate()) {
-                    try {
-                        yield this.fetchMissingQuotes(quotesRequest);
-                        return this.handle(req, res);
-                    }
-                    catch (e) {
-                        res.status(500).send(`Error fetching missing quotes: ${e.message}`);
-                    }
-                }
-                else {
-                    res.status(500).send('Some quotes are missing in requested range');
-                }
+            const missingDates = this.detectMissingDates(quotes, quotesRequest.getStartDate(), quotesRequest.getEndDate());
+            if (missingDates.length) {
+                console.log('quotes are missing for dates: ', ...missingDates);
+            }
+            if (missingDates.length > 0 && fetchMissing) {
+                this.fetchMissingQuotes(missingDates).subscribe(() => {
+                    this.handle(req, res, false);
+                }, (e) => {
+                    res.status(500).send(`Error fetching missing quotes: ${e.message}`);
+                });
             }
             else {
                 res.header('Content-Type', 'application/json');

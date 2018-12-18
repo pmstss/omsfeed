@@ -1,5 +1,4 @@
 import { Observable } from 'rxjs';
-import * as moment from 'moment';
 import { AssetQuote } from '../types/asset-quote';
 declare type DateUrl = {
     date: Date;
@@ -8,11 +7,14 @@ declare type DateUrl = {
 export declare class QuotesFetcher {
     private BASE_URL;
     private responseParser;
-    private urlsGenerator;
-    getDateUrl(date: moment.Moment | Date): DateUrl;
-    getUrlsStreamFrom(startDate: Date): Observable<DateUrl>;
+    private static dateRangeGenerator;
+    private static formatDate;
+    getDateUrl(date: Date): DateUrl;
+    static dateRangeToArray(startDate: Date, endDate: Date): Date[];
     private mapUrlsToRequests;
     private fetch;
+    fetchForDates(dates: Date[], concurrent?: number, chunkDelay?: number): Observable<AssetQuote>;
+    fetchForDateRange(startDate: Date, endDate: Date, concurrent?: number, chunkDelay?: number): Observable<AssetQuote>;
     fetchFromDate(startDate: Date, concurrent?: number, chunkDelay?: number): Observable<AssetQuote>;
     fetchForDate(date: Date): Observable<AssetQuote>;
 }

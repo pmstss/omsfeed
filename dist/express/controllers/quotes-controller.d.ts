@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
+import { AssetQuote } from '../../types/asset-quote';
 export declare class QuotesController {
     private dbClient;
+    private quotesFetcher;
     private fetchMissingQuotes;
-    handle(req: Request, res: Response): Promise<void>;
+    detectMissingDates(quotes: AssetQuote[], startDate: Date, endDate: Date): Date[];
+    handle(req: Request, res: Response, fetchMissing?: boolean): Promise<void>;
 }

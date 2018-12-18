@@ -1,30 +1,31 @@
 import { Request, Response } from 'express';
+import { from, Observable } from 'rxjs';
 import { flatMap, map, tap, toArray } from 'rxjs/operators';
 import { QuotesDbClient } from '../../db/quotes-db-client';
 import { QuotesRequest } from './quotes-request';
 import { ParametersParser } from './params-parser';
 import { AssetQuote } from '../../types/asset-quote';
 import { QuotesFetcher } from '../../fetcher/quotes-fetcher';
-import { InsertWriteOpResult } from 'mongodb';
 
 export class QuotesController {
     private dbClient: QuotesDbClient = null;
+    private quotesFetcher = new QuotesFetcher();
 
-    private fetchMissingQuotes(quotesRequest: QuotesRequest): Promise<InsertWriteOpResult> {
-        const quotesFetcher = new QuotesFetcher();
-        const date = quotesRequest.getStartDate();
-        return quotesFetcher.fetchForDate(date).pipe(
+    private fetchMissingQuotes(dates: Date[]): Observable<AssetQuote[]> {
+        return this.quotesFetcher.fetchForDates(dates).pipe(
             toArray(),
-            tap((quotes: AssetQuote[]) => {
-                if (quotes.length === 0) {
-                    throw new Error(`No quotes available for date ${date}`);
-                }
-            }),
-            flatMap((quotes: AssetQuote[]) => this.dbClient.insertMany(quotes))
-        ).toPromise();
+            flatMap((quotes: AssetQuote[]) => from(quotes.length > 0 ?
+                    this.dbClient.upsertMany(quotes).then(() => quotes) : []))
+        );
     }
 
-    async handle(req: Request, res: Response): Promise<void> {
+    detectMissingDates(quotes: AssetQuote[], startDate: Date, endDate: Date) {
+        const quotesSet = new Set(quotes.map(q => q.date.getTime()));
+        return QuotesFetcher.dateRangeToArray(startDate, endDate)
+            .filter(d => !quotesSet.has(d.getTime()));
+    }
+
+    async handle(req: Request, res: Response, fetchMissing = true): Promise<void> {
         if (!this.dbClient) {
             this.dbClient = await QuotesDbClient.getInstance();
         }
@@ -38,17 +39,20 @@ export class QuotesController {
             asset: quotesRequest.getAsset() || { $exists: true }
         }).toArray();
 
-        if (quotes.length === 0) {
-            if (quotesRequest.isSingleDate()) {
-                try {
-                    await this.fetchMissingQuotes(quotesRequest);
-                    return this.handle(req, res);
-                } catch (e) {
+        const missingDates = this.detectMissingDates(
+            quotes, quotesRequest.getStartDate(), quotesRequest.getEndDate());
+        if (missingDates.length) {
+            console.log('quotes are missing for dates: ', ...missingDates);
+        }
+
+        if (missingDates.length > 0 && fetchMissing) {
+            this.fetchMissingQuotes(missingDates).subscribe(
+                () => {
+                    this.handle(req, res, false);
+                },
+                (e) => {
                     res.status(500).send(`Error fetching missing quotes: ${e.message}`);
-                }
-            } else {
-                res.status(500).send('Some quotes are missing in requested range');
-            }
+                });
         } else {
             res.header('Content-Type', 'application/json');
             res.header('Cache-Control', `public, max-age=${3600 * 24 * 7}`);
