@@ -4,6 +4,7 @@ import {
     FilterQuery,
     InsertOneWriteOpResult,
     InsertWriteOpResult,
+    WriteOpResult,
     MongoClient
 } from 'mongodb';
 import { AssetQuote } from '../types/asset-quote';
@@ -65,6 +66,21 @@ export class QuotesDbClient {
 
     public insertMany(assetQuotes: AssetQuote[]): Promise<InsertWriteOpResult> {
         return this.collection.insertMany(assetQuotes);
+    }
+
+    public upsert(assetQuote: AssetQuote): Promise<WriteOpResult> {
+        return this.collection.update(
+            { 
+                date: assetQuote.date, 
+                asset: assetQuote.asset 
+            }, assetQuote, {
+                upsert:true
+            }
+        );
+    }
+    
+    public upsertMany(assetQuotes: AssetQuote[]): Promise<WriteOpResult[]> {
+        return Promise.all(assetQuotes.map(q => this.upsert(q)));
     }
 
     public find(query: FilterQuery<AssetQuote>): Cursor<AssetQuote> {
