@@ -25,7 +25,7 @@ export class QuotesController {
             .filter(d => !quotesSet.has(d.getTime()));
     }
 
-    async handle(req: Request, res: Response, fetchMissing = true): Promise<void> {
+    async handle(req: Request, res: Response, next: any, fetchMissing = true): Promise<void> {
         if (!this.dbClient) {
             this.dbClient = await QuotesDbClient.getInstance();
         }
@@ -46,16 +46,14 @@ export class QuotesController {
         }
 
         if (missingDates.length > 0 && fetchMissing) {
-            this.fetchMissingQuotes(missingDates).subscribe(
-                () => {
-                    this.handle(req, res, false);
-                },
-                (e) => {
-                    res.status(500).send(`Error fetching missing quotes: ${e.message}`);
-                });
+            try {
+                const quotes = this.fetchMissingQuotes(missingDates).toPromise();
+                this.handle(req, res, next, false);
+            } catch (e) {
+                res.status(500).send(`Error fetching missing quotes: ${e.message}`);
+            }
         } else {
             res.header('Content-Type', 'application/json');
-            res.header('Cache-Control', `public, max-age=${3600 * 24 * 7}`);
             res.send(quotes);
         }
     }

@@ -5,5 +5,5 @@ export declare class QuotesController {
     private quotesFetcher;
     private fetchMissingQuotes;
     detectMissingDates(quotes: AssetQuote[], startDate: Date, endDate: Date): Date[];
-    handle(req: Request, res: Response, fetchMissing?: boolean): Promise<void>;
+    handle(req: Request, res: Response, next: any, fetchMissing?: boolean): Promise<void>;
 }
