@@ -34,7 +34,7 @@ app.use(morganMongoMiddleware(
 app.use(compression());
 
 // route to display cache index
-app.get('/quotes/cache', (req, res) => {
+app.get('/cache', (req, res) => {
     res.json(apicache.getIndex());
 });
 
