@@ -11,15 +11,15 @@ export class QuotesController {
     private dbClient: QuotesDbClient = null;
     private quotesFetcher = new QuotesFetcher();
 
-    private fetchMissingQuotes(dates: Date[]): Observable<AssetQuote[]> {
+    private fetchMissingQuotes(dates: Date[]): Promise<AssetQuote[]> {
         return this.quotesFetcher.fetchForDates(dates).pipe(
             toArray(),
             flatMap((quotes: AssetQuote[]) => from(quotes.length > 0 ?
                     this.dbClient.upsertMany(quotes).then(() => quotes) : []))
-        );
+        ).toPromise();
     }
 
-    detectMissingDates(quotes: AssetQuote[], startDate: Date, endDate: Date) {
+    detectMissingDates(quotes: AssetQuote[], startDate: Date, endDate: Date): Date[] {
         const quotesSet = new Set(quotes.map(q => q.date.getTime()));
         return QuotesFetcher.dateRangeToArray(startDate, endDate)
             .filter(d => !quotesSet.has(d.getTime()));
@@ -42,12 +42,13 @@ export class QuotesController {
         const missingDates = this.detectMissingDates(
             quotes, quotesRequest.getStartDate(), quotesRequest.getEndDate());
         if (missingDates.length) {
-            console.log('quotes are missing for dates: ', ...missingDates);
+            console.log('quotes are missing for dates: ', missingDates
+                    .map(d => d.toISOString().substr(0, 10)).join(', '));
         }
 
         if (missingDates.length > 0 && fetchMissing) {
             try {
-                const quotes = this.fetchMissingQuotes(missingDates).toPromise();
+                const quotes = await this.fetchMissingQuotes(missingDates);
                 this.handle(req, res, next, false);
             } catch (e) {
                 res.status(500).send(`Error fetching missing quotes: ${e.message}`);
