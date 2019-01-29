@@ -17,7 +17,7 @@ app.use(logger('dev'));
 
 app.use(morganMongoMiddleware(
     {
-        connectionString: process.env.MONGO_OMS_URI || 'mongodb://localhost:27017',
+        connectionString: process.env.MONGO_OMS_URI || 'mongodb://localhost:27017'
     },
     {
         dbName: process.env.MONGO_OMS_DB || 'oms'

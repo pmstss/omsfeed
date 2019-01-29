@@ -20,7 +20,7 @@ class QuotesController {
     }
     fetchMissingQuotes(dates) {
         return this.quotesFetcher.fetchForDates(dates).pipe(operators_1.toArray(), operators_1.flatMap((quotes) => rxjs_1.from(quotes.length > 0 ?
-            this.dbClient.upsertMany(quotes).then(() => quotes) : [])));
+            this.dbClient.upsertMany(quotes).then(() => quotes) : []))).toPromise();
     }
     detectMissingDates(quotes, startDate, endDate) {
         const quotesSet = new Set(quotes.map(q => q.date.getTime()));
@@ -42,11 +42,12 @@ class QuotesController {
             }).toArray();
             const missingDates = this.detectMissingDates(quotes, quotesRequest.getStartDate(), quotesRequest.getEndDate());
             if (missingDates.length) {
-                console.log('quotes are missing for dates: ', ...missingDates);
+                console.log('quotes are missing for dates: ', missingDates
+                    .map(d => d.toISOString().substr(0, 10)).join(', '));
             }
             if (missingDates.length > 0 && fetchMissing) {
                 try {
-                    const quotes = this.fetchMissingQuotes(missingDates).toPromise();
+                    const quotes = yield this.fetchMissingQuotes(missingDates);
                     this.handle(req, res, next, false);
                 }
                 catch (e) {

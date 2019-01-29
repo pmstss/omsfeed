@@ -14,7 +14,7 @@ exports.app.set('json spaces', 4);
 exports.app.use(cors());
 exports.app.use(logger('dev'));
 exports.app.use(morgan_mongo_1.morganMongoMiddleware({
-    connectionString: process.env.MONGO_OMS_URI || 'mongodb://localhost:27017',
+    connectionString: process.env.MONGO_OMS_URI || 'mongodb://localhost:27017'
 }, {
     dbName: process.env.MONGO_OMS_DB || 'oms'
 }, {
@@ -26,7 +26,7 @@ exports.app.use(morgan_mongo_1.morganMongoMiddleware({
 }));
 exports.app.use(compression());
 // route to display cache index
-exports.app.get('/quotes/cache', (req, res) => {
+exports.app.get('/cache', (req, res) => {
     res.json(apicache.getIndex());
 });
 exports.app.use('/quotes', apicache.middleware('10 minutes'), quotes_router_1.default);
